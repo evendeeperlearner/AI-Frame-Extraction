@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Read(//Users/jigarzonalva/Proyecto_GaussianSplating/**)",
+      "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
+      "Bash(uv venv:*)",
+      "Bash(source:*)",
+      "Bash(pip --version)",
+      "Bash(uv pip install:*)",
+      "Bash(ffmpeg:*)",
+      "Bash(python test:*)",
+      "WebFetch(domain:ai.meta.com)",
+      "WebFetch(domain:github.com)",
+      "Bash(pip install:*)",
+      "Bash(huggingface-cli login:*)",
+      "Bash(hf auth:*)",
+      "Bash(python:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

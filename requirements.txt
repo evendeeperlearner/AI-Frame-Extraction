@@ -1,0 +1,21 @@
+# Core dependencies for FFmpeg + DINOv3 Adaptive Frame Extraction
+torch>=2.0.0
+torchvision>=0.15.0
+transformers>=4.30.0
+
+# Computer Vision
+opencv-python>=4.5.0
+pillow>=9.0.0
+scikit-image>=0.19.0
+
+# Scientific Computing
+numpy>=1.21.0
+scikit-learn>=1.0.0
+scipy>=1.7.0
+
+# System and Performance
+psutil>=5.8.0
+tqdm>=4.60.0
+
+# Configuration and I/O
+pyyaml>=5.4.0

@@ -1,19 +1,18 @@
-# FFmpeg + DINOv3 Adaptive Frame Extraction
+# Panoramic Video Preparation Toolkit
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Production-ready adaptive video frame extraction using **DINOv3 dense features** for improved **Structure from Motion (SfM)** reconstruction quality. Intelligently selects frames with rich visual details while optimizing temporal distribution for robust 3D reconstruction.
+A sophisticated AI-powered toolkit for extracting high-quality frames from videos using dynamic sampling with **DINOv2 and DINOv3** models. Designed for panoramic scene reconstruction, Gaussian Splatting, and **Structure from Motion (SfM)** applications.
 
-## 🎯 Key Features
+## 🌟 Key Features
 
-- **🎬 Intelligent Frame Selection**: Uses DINOv3's dense visual features to identify frames with rich geometric and semantic content
-- **🔍 Visual Detail Analysis**: Multi-criteria scoring combining spatial complexity, semantic richness, and geometric information
-- **⚡ Multi-Device Support**: Optimized for Apple Silicon (MPS), NVIDIA CUDA, and CPU with automatic device detection
-- **📊 SfM Optimization**: Specifically designed to improve Structure from Motion reconstruction quality
-- **🚀 Production Ready**: Comprehensive error handling, monitoring, and deployment support
-- **💾 Memory Efficient**: Streaming processing for large videos with intelligent caching
+- **Dynamic Frame Extraction**: Intelligent sampling with higher frame rates in detail-rich regions
+- **Dual Model Support**: Both DINOv2 (stable) and DINOv3 (advanced) vision transformers
+- **Adaptive Quality Control**: Multi-criteria saliency analysis for optimal frame selection
+- **Device Optimization**: Auto-detection and optimization for Apple Silicon MPS, NVIDIA CUDA, and CPU
+- **Production Ready**: Comprehensive logging, error handling, and configurable parameters
 
 ## 🛠️ Installation
 
@@ -41,34 +40,92 @@ pip install -r requirements.txt
 
 ## 🚀 Quick Start
 
-### Basic Usage
+### 1. Simple Usage
+
+```bash
+# Basic extraction with defaults
+python examples/simple_extraction.py your_video.mp4
+
+# Advanced extraction with custom parameters  
+python examples/advanced_extraction.py --video video.mp4 --model dinov3_small --rich-fps 5.0 --poor-fps 0.25
+```
+
+### 2. Production Usage
+
+```bash
+# Full-featured extraction script
+python src/examples/production_extract.py --video video.mp4 --model dinov3_base --rich-fps 8.0 --poor-fps 0.1 --threshold 0.8
+```
+
+### 3. Programmatic Usage
+
 ```python
 from pathlib import Path
-from src.core.config import ProcessingConfig
+from src.core.config import ProcessingConfig, DINOModelType
 from src.pipeline.adaptive_extraction_pipeline import AdaptiveExtractionPipeline
 
-# Configure extraction parameters
+# Configure dynamic extraction parameters
 config = ProcessingConfig(
-    input_video_path=Path("input/drone_footage.mp4"),
-    output_frames_dir=Path("output/extracted_frames"),
-    device="auto",  # Auto-detect best device
-    saliency_threshold=0.75,  # Quality threshold
-    max_frames=500,  # Maximum frames to extract
-    min_temporal_spacing=30  # Minimum frames between selections
+    input_video_path=Path("video.mp4"),
+    output_frames_dir=Path("extracted_frames"),
+    device="auto",
+    
+    # Dynamic extraction settings
+    feature_rich_threshold=0.7,
+    feature_rich_fps=4.0,      # 4 fps in detail-rich areas
+    feature_poor_fps=0.5,      # 0.5 fps in simple areas
+    
+    max_frames=1000,
+    target_resolution=(1920, 1080)
 )
 
-# Run extraction pipeline
+# Set model (DINOv2 or DINOv3)
+config.set_model(DINOModelType.DINOV3_SMALL)
+
+# Run extraction
 pipeline = AdaptiveExtractionPipeline(config)
 results = pipeline.run_full_pipeline()
 
 print(f"Selected {len(results['selected_frames'])} frames")
-print(f"Quality assessment: {results['quality_summary']['quality_assessment']}")
 ```
 
-### Command Line Usage
-```bash
-python src/examples/basic_usage.py path/to/your/video.mp4
+## 📁 Project Structure
+
 ```
+PanoramicVideoPrep/
+├── src/                    # Core source code
+│   ├── core/              # Core functionality
+│   │   ├── config.py      # Configuration management
+│   │   ├── feature_extractor.py  # DINOv2/v3 models
+│   │   ├── dynamic_sampler.py    # Adaptive frame sampling
+│   │   ├── saliency_analyzer.py  # Multi-criteria analysis
+│   │   └── video_processor.py    # Video I/O operations
+│   ├── pipeline/          # Processing pipelines
+│   │   └── adaptive_extraction_pipeline.py
+│   ├── utils/             # Common utilities
+│   │   ├── logging_setup.py      # Centralized logging
+│   │   └── test_helpers.py       # Test utilities
+│   └── examples/          # Production examples
+│       └── production_extract.py # Main production script
+├── examples/              # Simple usage examples
+│   ├── simple_extraction.py      # Beginner-friendly
+│   ├── advanced_extraction.py    # Full-featured
+│   └── README.md          # Examples documentation
+├── tests/                 # Test scripts
+│   ├── test_complete_pipeline.py # Comprehensive tests
+│   ├── test_dynamic_extraction.py
+│   └── test_img5200_dynamic.py
+├── docs/                  # Documentation
+└── README.md             # This file
+```
+
+## 🎯 Model Selection Guide
+
+| Model | Parameters | Speed | Quality | Best For |
+|-------|------------|-------|---------|----------|
+| `dinov2_base` | ~86M | Fast | Good | Compatibility, testing |
+| `dinov3_small` | ~21M | Very Fast | Good | Speed-critical applications |
+| `dinov3_base` | ~86M | Medium | Excellent | Production quality |
 
 ## 📊 How It Works
 

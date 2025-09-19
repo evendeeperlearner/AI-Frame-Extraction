@@ -17,7 +17,9 @@
       "Bash(pip install:*)",
       "Bash(huggingface-cli login:*)",
       "Bash(hf auth:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

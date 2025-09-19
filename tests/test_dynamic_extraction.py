@@ -14,34 +14,18 @@ sys.path.append(str(Path(__file__).parent))
 
 from src.core.config import ProcessingConfig
 from src.pipeline.adaptive_extraction_pipeline import AdaptiveExtractionPipeline
-
-
-def setup_logging():
-    """Setup detailed logging configuration"""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler('dynamic_extraction.log')
-        ]
-    )
-    
-    # Set specific loggers to INFO for detailed output
-    logging.getLogger('src.core.dynamic_sampler').setLevel(logging.INFO)
-    logging.getLogger('src.core.saliency_analyzer').setLevel(logging.INFO)
-    logging.getLogger('src.pipeline.adaptive_extraction_pipeline').setLevel(logging.INFO)
+from src.utils.logging_setup import setup_extraction_logging
+from src.utils.test_helpers import validate_video_path, analyze_extraction_results, print_extraction_summary
 
 
 def main():
     """Test dynamic frame extraction"""
-    setup_logging()
-    logger = logging.getLogger(__name__)
+    logger = setup_extraction_logging('dynamic_extraction')
     
     # Use the provided video path
     video_path = Path("/Users/jigarzonalva/Proyecto_GaussianSplating/IMG_0029.mp4")
     
-    if not video_path.exists():
+    if not validate_video_path(video_path):
         logger.error(f"Video file not found: {video_path}")
         sys.exit(1)
     
@@ -89,49 +73,10 @@ def main():
         results = pipeline.run_full_pipeline()
         total_time = time.time() - start_time
         
-        # Print detailed results
-        print("\n" + "="*80)
-        print("DYNAMIC EXTRACTION COMPLETE")
-        print("="*80)
-        print(f"Video: {video_path.name}")
-        print(f"Duration: {results['video_info']['duration']:.1f} seconds")
-        print(f"Total frames in video: {results['video_info']['total_frames']}")
-        print(f"Video FPS: {results['video_info']['fps']:.2f}")
-        print(f"Selected frames: {len(results['selected_frames'])}")
-        print(f"Selection rate: {len(results['selected_frames'])/results['video_info']['total_frames']*100:.1f}%")
-        print(f"Processing time: {total_time:.1f} seconds")
-        
-        # Analyze extraction patterns
-        if results['selected_frames']:
-            rich_frames = [f for f in results['selected_frames'] 
-                          if f.get('saliency_scores', {}).get('region_type') == 'rich']
-            poor_frames = [f for f in results['selected_frames'] 
-                          if f.get('saliency_scores', {}).get('region_type') == 'poor']
-            
-            print(f"\nExtraction Pattern Analysis:")
-            print(f"Feature-rich frames selected: {len(rich_frames)}")
-            print(f"Feature-poor frames selected: {len(poor_frames)}")
-            print(f"Rich/Poor ratio: {len(rich_frames)/(len(poor_frames)+1e-6):.2f}")
-            
-            # Calculate actual extraction rates
-            if results['selected_frames']:
-                frame_times = [(f['original_frame_idx'] / results['video_info']['fps']) 
-                              for f in results['selected_frames']]
-                time_intervals = [frame_times[i+1] - frame_times[i] 
-                                for i in range(len(frame_times)-1)]
-                
-                if time_intervals:
-                    avg_interval = sum(time_intervals) / len(time_intervals)
-                    actual_avg_fps = 1.0 / avg_interval if avg_interval > 0 else 0
-                    print(f"Average time interval: {avg_interval:.2f} seconds")
-                    print(f"Actual average FPS: {actual_avg_fps:.2f}")
-        
-        # Quality summary
-        if 'quality_summary' in results:
-            quality = results['quality_summary']
-            print(f"\nQuality Assessment: {quality.get('quality_assessment', 'N/A')}")
-            print(f"Average composite score: {quality.get('average_composite_score', 0):.3f}")
-            print(f"Average SfM contribution: {quality.get('average_reconstruction_contribution', 0):.3f}")
+        # Analyze and print results using centralized utilities
+        analysis = analyze_extraction_results(results)
+        model_info = {'model_version': 'DINOv2', 'estimated_params': '~86M parameters'}
+        print_extraction_summary(results, analysis, video_path, total_time, model_info)
         
         # Get dynamic sampler statistics
         if hasattr(pipeline.frame_sampler, 'get_selection_stats'):
@@ -142,18 +87,18 @@ def main():
             print(f"Rich frames selected: {sampler_stats.get('feature_rich_frames_selected', 0)}")
             print(f"Poor frames selected: {sampler_stats.get('feature_poor_frames_selected', 0)}")
         
-        print(f"\nOutput Files:")
-        print(f"- Frames: {config.output_frames_dir}/")
-        print(f"- Results: extraction_results.json")
-        print(f"- Metadata: sfm_metadata.json")
-        print(f"- Log: dynamic_extraction.log")
+        print(f"\n📁 Output Files:")
+        print(f"• Frames: {config.output_frames_dir}/")
+        print(f"• Results: extraction_results.json")
+        print(f"• Metadata: sfm_metadata.json")
+        print(f"• Log: dynamic_extraction_extraction.log")
         
         logger.info("Dynamic extraction test completed successfully")
         
     except Exception as e:
         logger.error(f"Processing failed: {e}", exc_info=True)
-        print(f"\nERROR: {e}")
-        print("Check the log file 'dynamic_extraction.log' for details.")
+        print(f"\n❌ ERROR: {e}")
+        print("Check the log file 'dynamic_extraction_extraction.log' for details.")
         sys.exit(1)
 
 

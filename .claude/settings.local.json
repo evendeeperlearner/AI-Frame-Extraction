@@ -19,7 +19,8 @@
       "Bash(hf auth:*)",
       "Bash(python:*)",
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
